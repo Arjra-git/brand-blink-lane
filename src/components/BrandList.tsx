@@ -33,7 +33,12 @@ const generateMockBrands = (startId: number, count: number): Brand[] => {
     { name: "SAP SE", logo: "💼", category: "Enterprise Software", company: "SAP SE", city: "Pune", office: "Hyderabad", agency: "Wipro Digital" },
     { name: "IBM Corporation", logo: "🔷", category: "Technology & Consulting", company: "IBM Corporation", city: "Delhi", office: "Bangalore", agency: "IBM iX" },
     { name: "Intel Corporation", logo: "💻", category: "Semiconductors", company: "Intel Corporation", city: "Chennai", office: "Pune", agency: "Weber Shandwick" },
-    { name: "NVIDIA Corporation", logo: "🎮", category: "Graphics & AI", company: "NVIDIA Corporation", city: "Mumbai", office: "Hyderabad", agency: "Edelman Digital" }
+    { name: "NVIDIA Corporation", logo: "🎮", category: "Graphics & AI", company: "NVIDIA Corporation", city: "Mumbai", office: "Hyderabad", agency: "Edelman Digital" },
+    { name: "Zomato Ltd.", logo: "🍕", category: "Food & Delivery", company: "Zomato Limited", city: "Gurgaon", office: "Delhi", agency: "Ogilvy India" },
+    { name: "Swiggy Pvt. Ltd.", logo: "🛵", category: "Food Delivery", company: "Bundl Technologies", city: "Bangalore", office: "Mumbai", agency: "Lowe Lintas" },
+    { name: "Flipkart Internet", logo: "🛒", category: "E-commerce", company: "Flipkart Private Limited", city: "Bangalore", office: "Delhi", agency: "Wunderman Thompson" },
+    { name: "Paytm Ltd.", logo: "💳", category: "Fintech", company: "One97 Communications", city: "Noida", office: "Mumbai", agency: "McCann Worldgroup" },
+    { name: "Ola Cabs", logo: "🚖", category: "Transportation", company: "ANI Technologies", city: "Bangalore", office: "Hyderabad", agency: "Leo Burnett India" }
   ];
 
   const owners = ["Thara", "Sarah", "John", "Lisa", "David", "Emma", "Alex", "Maya", "Priya", "Rahul", "Anita", "Vikram"];
@@ -48,13 +53,13 @@ const generateMockBrands = (startId: number, count: number): Brand[] => {
       name: company.name,
       logo: company.logo,
       category: company.category,
-      owners: [
+      owners: Math.random() > 0.3 ? [
         { 
           name: owners[ownerIndex], 
           avatar: "👤", 
           count: Math.random() > 0.5 ? Math.floor(Math.random() * 4) + 1 : undefined 
         }
-      ],
+      ] : [],
       companyName: company.company,
       hqCity: company.city,
       marketingOffice: company.office,
@@ -79,7 +84,7 @@ const BrandList = () => {
 
   // Generate all brands once
   useEffect(() => {
-    const brands = generateMockBrands(1, 100); // Generate 100 brands total
+    const brands = generateMockBrands(1, 150); // Generate 150 brands total
     setAllBrands(brands);
   }, []);
 
@@ -102,6 +107,12 @@ const BrandList = () => {
       if (nextBatch.length > 0) {
         setDisplayedBrands(prev => [...prev, ...nextBatch]);
         setLoadedBrandsCount(prev => prev + nextBatch.length);
+        
+        // Trigger animation for brands with previous deals in the new batch
+        setTimeout(() => {
+          setShouldAnimate(true);
+          setTimeout(() => setShouldAnimate(false), 2000);
+        }, nextBatch.length * 100 + 500); // Wait for fade-in to complete
         
         if (currentLength + nextBatch.length >= filteredAllBrands.length) {
           setHasMore(false);
@@ -152,12 +163,12 @@ const BrandList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6">
+    <div className="min-h-screen bg-gray-50 text-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-semibold text-white">All Brands</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">All Brands</h1>
             <div className="flex gap-2">
               <Button
                 variant={activeFilter === "all" ? "default" : "outline"}
@@ -166,7 +177,7 @@ const BrandList = () => {
                 className={`rounded-full ${
                   activeFilter === "all" 
                     ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                    : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 All({totalCount})
@@ -178,7 +189,7 @@ const BrandList = () => {
                 className={`rounded-full ${
                   activeFilter === "offloaded" 
                     ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                    : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+                    : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 Offloaded ({offloadedCount})
@@ -195,22 +206,22 @@ const BrandList = () => {
               <Play className="w-4 h-4 mr-2" />
               Test Animation
             </Button>
-            <Button variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+            <Button variant="outline" size="sm" className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
               <Search className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+            <Button variant="outline" size="sm" className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
               <Download className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+            <Button variant="outline" size="sm" className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
               <Filter className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
+        <div className="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
           {/* Table Header */}
-          <div className="grid grid-cols-12 gap-4 p-4 bg-slate-750 border-b border-slate-700 text-sm font-medium text-slate-300">
+          <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b border-gray-200 text-sm font-medium text-gray-700">
             <div className="col-span-3 flex items-center">
               Brand Name ↕
             </div>
@@ -248,8 +259,8 @@ const BrandList = () => {
           {/* Loading indicator */}
           {loading && (
             <div className="p-8 text-center">
-              <div className="inline-flex items-center gap-2 text-slate-400">
-                <div className="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+              <div className="inline-flex items-center gap-2 text-gray-500">
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
                 Loading more brands...
               </div>
             </div>
@@ -257,7 +268,7 @@ const BrandList = () => {
 
           {/* End of list message */}
           {!hasMore && displayedBrands.length > 0 && (
-            <div className="p-8 text-center text-slate-500">
+            <div className="p-8 text-center text-gray-500">
               You've reached the end of the list
             </div>
           )}

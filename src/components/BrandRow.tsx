@@ -74,7 +74,7 @@ const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }
   return (
     <div 
       className={`
-        relative grid grid-cols-12 gap-4 p-4 border-b border-slate-700 hover:bg-slate-750 transition-all duration-500
+        relative grid grid-cols-12 gap-4 p-4 border-b border-gray-200 hover:bg-gray-50 transition-all duration-500
         ${brand.hasPreviousDeal ? 'border-l-2 border-l-green-500' : ''}
         ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
       `}
@@ -88,17 +88,17 @@ const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }
 
       {/* Brand Name */}
       <div className="col-span-3 flex items-center gap-3">
-        <div className="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center text-lg">
+        <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-lg">
           {brand.logo}
         </div>
         <div>
-          <div className="font-medium text-white flex items-center gap-2">
+          <div className="font-medium text-gray-900 flex items-center gap-2">
             {brand.name}
             {brand.hasPreviousDeal && (
-              <span className="text-orange-400 text-sm">⚠️</span>
+              <span className="text-orange-500 text-sm">⚠️</span>
             )}
           </div>
-          <div className="text-sm text-slate-400">{brand.category}</div>
+          <div className="text-sm text-gray-500">{brand.category}</div>
         </div>
       </div>
 
@@ -109,34 +109,34 @@ const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }
             <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs text-white">
               {brand.owners[0].avatar}
             </div>
-            <span className="text-sm text-slate-300">
+            <span className="text-sm text-gray-700">
               {brand.owners[0].name}
               {brand.owners[0].count && ` +${brand.owners[0].count}`}
             </span>
           </div>
         ) : (
-          <span className="text-sm text-slate-500 italic">Yet to add</span>
+          <span className="text-sm text-gray-400 italic">Yet to add</span>
         )}
       </div>
 
       {/* Company Name */}
       <div className="col-span-2 flex items-center">
-        <span className="text-sm text-slate-300">{brand.companyName}</span>
+        <span className="text-sm text-gray-700">{brand.companyName}</span>
       </div>
 
       {/* HQ City */}
       <div className="col-span-1 flex items-center">
-        <span className="text-sm text-slate-300">{brand.hqCity}</span>
+        <span className="text-sm text-gray-700">{brand.hqCity}</span>
       </div>
 
       {/* Marketing Office */}
       <div className="col-span-2 flex items-center">
-        <span className="text-sm text-slate-300">{brand.marketingOffice}</span>
+        <span className="text-sm text-gray-700">{brand.marketingOffice}</span>
       </div>
 
       {/* Agency */}
       <div className="col-span-2 flex items-center">
-        <span className="text-sm text-slate-300">{brand.agency}</span>
+        <span className="text-sm text-gray-700">{brand.agency}</span>
       </div>
     </div>
   );
