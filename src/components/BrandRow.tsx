@@ -28,10 +28,10 @@ const BrandRow = ({ brand, shouldAnimate, delay }: BrandRowProps) => {
       const timer = setTimeout(() => {
         setShowAnimation(true);
         
-        // Reset animation after it completes
+        // Reset animation after it completes (faster timing)
         const resetTimer = setTimeout(() => {
           setShowAnimation(false);
-        }, 1500);
+        }, 800);
 
         return () => clearTimeout(resetTimer);
       }, delay);
@@ -50,7 +50,7 @@ const BrandRow = ({ brand, shouldAnimate, delay }: BrandRowProps) => {
       {/* Animated highlight overlay */}
       {showAnimation && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="h-full w-full bg-gradient-to-r from-transparent via-green-500/20 to-green-500/30 animate-[slide-highlight_1.5s_ease-out_forwards]" />
+          <div className="h-full w-full bg-gradient-to-r from-transparent via-green-500/20 to-green-500/30 animate-[slide-highlight_0.8s_ease-out_forwards]" />
         </div>
       )}
 
