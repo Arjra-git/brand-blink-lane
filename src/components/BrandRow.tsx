@@ -18,17 +18,31 @@ interface BrandRowProps {
   brand: Brand;
   shouldAnimate: boolean;
   delay: number;
+  shouldFadeIn?: boolean;
+  fadeInDelay?: number;
 }
 
-const BrandRow = ({ brand, shouldAnimate, delay }: BrandRowProps) => {
+const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }: BrandRowProps) => {
   const [showAnimation, setShowAnimation] = useState(false);
+  const [isVisible, setIsVisible] = useState(!shouldFadeIn);
 
+  // Handle fade-in animation
   useEffect(() => {
-    if (shouldAnimate && brand.hasPreviousDeal) {
+    if (shouldFadeIn) {
+      const fadeTimer = setTimeout(() => {
+        setIsVisible(true);
+      }, fadeInDelay);
+
+      return () => clearTimeout(fadeTimer);
+    }
+  }, [shouldFadeIn, fadeInDelay]);
+
+  // Handle highlight animation
+  useEffect(() => {
+    if (shouldAnimate && brand.hasPreviousDeal && isVisible) {
       const timer = setTimeout(() => {
         setShowAnimation(true);
         
-        // Reset animation after it completes (faster timing)
         const resetTimer = setTimeout(() => {
           setShowAnimation(false);
         }, 800);
@@ -38,13 +52,31 @@ const BrandRow = ({ brand, shouldAnimate, delay }: BrandRowProps) => {
 
       return () => clearTimeout(timer);
     }
-  }, [shouldAnimate, delay, brand.hasPreviousDeal]);
+  }, [shouldAnimate, delay, brand.hasPreviousDeal, isVisible]);
+
+  // Auto-trigger animation after fade-in completes for previous deal brands
+  useEffect(() => {
+    if (isVisible && brand.hasPreviousDeal && shouldFadeIn) {
+      const autoAnimateTimer = setTimeout(() => {
+        setShowAnimation(true);
+        
+        const resetTimer = setTimeout(() => {
+          setShowAnimation(false);
+        }, 800);
+
+        return () => clearTimeout(resetTimer);
+      }, fadeInDelay + 600); // Wait for fade-in to complete plus small delay
+
+      return () => clearTimeout(autoAnimateTimer);
+    }
+  }, [isVisible, brand.hasPreviousDeal, shouldFadeIn, fadeInDelay]);
 
   return (
     <div 
       className={`
-        relative grid grid-cols-12 gap-4 p-4 border-b border-slate-700 hover:bg-slate-750 transition-colors duration-200
+        relative grid grid-cols-12 gap-4 p-4 border-b border-slate-700 hover:bg-slate-750 transition-all duration-500
         ${brand.hasPreviousDeal ? 'border-l-2 border-l-green-500' : ''}
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
       `}
     >
       {/* Animated highlight overlay */}

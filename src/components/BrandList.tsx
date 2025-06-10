@@ -1,8 +1,7 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Search, Download, Filter, Play } from "lucide-react";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import BrandRow from "./BrandRow";
 
 interface Brand {
@@ -60,70 +59,96 @@ const generateMockBrands = (startId: number, count: number): Brand[] => {
       hqCity: company.city,
       marketingOffice: company.office,
       agency: company.agency,
-      hasPreviousDeal: Math.random() > 0.6 // 40% chance of having previous deal
+      hasPreviousDeal: Math.random() > 0.6
     };
   });
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_LOAD = 15;
 
 const BrandList = () => {
   const [activeFilter, setActiveFilter] = useState<"all" | "offloaded">("all");
   const [shouldAnimate, setShouldAnimate] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [allBrands] = useState(() => generateMockBrands(1, 50)); // Generate 50 brands
-  const [scrollTriggeredAnimation, setScrollTriggeredAnimation] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const [allBrands, setAllBrands] = useState<Brand[]>([]);
+  const [displayedBrands, setDisplayedBrands] = useState<Brand[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [loadedBrandsCount, setLoadedBrandsCount] = useState(0);
+  const observerRef = useRef<HTMLDivElement>(null);
 
-  const filteredBrands = activeFilter === "all" 
+  // Generate all brands once
+  useEffect(() => {
+    const brands = generateMockBrands(1, 100); // Generate 100 brands total
+    setAllBrands(brands);
+  }, []);
+
+  const filteredAllBrands = activeFilter === "all" 
     ? allBrands 
     : allBrands.filter(brand => !brand.hasPreviousDeal);
-
-  const totalPages = Math.ceil(filteredBrands.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedBrands = filteredBrands.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const totalCount = allBrands.length;
   const offloadedCount = allBrands.filter(brand => !brand.hasPreviousDeal).length;
 
+  const loadMoreBrands = useCallback(() => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+    
+    setTimeout(() => {
+      const currentLength = displayedBrands.length;
+      const nextBatch = filteredAllBrands.slice(currentLength, currentLength + ITEMS_PER_LOAD);
+      
+      if (nextBatch.length > 0) {
+        setDisplayedBrands(prev => [...prev, ...nextBatch]);
+        setLoadedBrandsCount(prev => prev + nextBatch.length);
+        
+        if (currentLength + nextBatch.length >= filteredAllBrands.length) {
+          setHasMore(false);
+        }
+      } else {
+        setHasMore(false);
+      }
+      
+      setLoading(false);
+      setIsInitialLoad(false);
+    }, 500); // Simulate loading delay
+  }, [loading, hasMore, displayedBrands.length, filteredAllBrands]);
+
+  // Load initial data on mount and filter change
+  useEffect(() => {
+    setDisplayedBrands([]);
+    setLoadedBrandsCount(0);
+    setHasMore(true);
+    setIsInitialLoad(true);
+    
+    // Reset and load first batch
+    setTimeout(() => {
+      loadMoreBrands();
+    }, 100);
+  }, [activeFilter, allBrands.length]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          loadMoreBrands();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadMoreBrands]);
+
   const triggerAnimation = () => {
     setShouldAnimate(true);
     setTimeout(() => setShouldAnimate(false), 1500);
-  };
-
-  const handleScroll = () => {
-    // Clear existing timeout
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-
-    // Set new timeout to trigger animation after scroll stops
-    scrollTimeoutRef.current = setTimeout(() => {
-      setScrollTriggeredAnimation(true);
-      setTimeout(() => setScrollTriggeredAnimation(false), 1500);
-    }, 150);
-  };
-
-  useEffect(() => {
-    const handleWindowScroll = () => handleScroll();
-    window.addEventListener('scroll', handleWindowScroll);
-    return () => {
-      window.removeEventListener('scroll', handleWindowScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Trigger animation when page changes
-  useEffect(() => {
-    setScrollTriggeredAnimation(true);
-    setTimeout(() => setScrollTriggeredAnimation(false), 1500);
-  }, [currentPage]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -208,55 +233,38 @@ const BrandList = () => {
 
           {/* Table Body */}
           <div>
-            {paginatedBrands.map((brand, index) => (
+            {displayedBrands.map((brand, index) => (
               <BrandRow 
                 key={brand.id} 
                 brand={brand} 
-                shouldAnimate={shouldAnimate || scrollTriggeredAnimation}
+                shouldAnimate={shouldAnimate}
                 delay={index * 50}
+                shouldFadeIn={true}
+                fadeInDelay={index * 100}
               />
             ))}
           </div>
+
+          {/* Loading indicator */}
+          {loading && (
+            <div className="p-8 text-center">
+              <div className="inline-flex items-center gap-2 text-slate-400">
+                <div className="w-4 h-4 border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin"></div>
+                Loading more brands...
+              </div>
+            </div>
+          )}
+
+          {/* End of list message */}
+          {!hasMore && displayedBrands.length > 0 && (
+            <div className="p-8 text-center text-slate-500">
+              You've reached the end of the list
+            </div>
+          )}
         </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex justify-center">
-            <Pagination>
-              <PaginationContent className="bg-slate-800 rounded-lg border border-slate-700 p-2">
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                    className={`text-slate-300 hover:bg-slate-700 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      onClick={() => handlePageChange(page)}
-                      isActive={currentPage === page}
-                      className={`cursor-pointer ${
-                        currentPage === page 
-                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                          : 'text-slate-300 hover:bg-slate-700'
-                      }`}
-                    >
-                      {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                    className={`text-slate-300 hover:bg-slate-700 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+        {/* Infinite scroll trigger */}
+        <div ref={observerRef} className="h-10" />
       </div>
     </div>
   );
