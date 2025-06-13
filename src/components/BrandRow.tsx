@@ -79,6 +79,11 @@ const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }
         ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
       `}
     >
+      {/* Left gradient beam for previous deals */}
+      {brand.hasPreviousDeal && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-green-400/40 via-green-500/60 to-green-600/40 shadow-sm" />
+      )}
+
       {/* Animated highlight overlay */}
       {showAnimation && (
         <div className="absolute inset-0 pointer-events-none">
