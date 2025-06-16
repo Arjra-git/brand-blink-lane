@@ -25,6 +25,7 @@ interface BrandRowProps {
 const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }: BrandRowProps) => {
   const [showAnimation, setShowAnimation] = useState(false);
   const [isVisible, setIsVisible] = useState(!shouldFadeIn);
+  let resetTimer: ReturnType<typeof setTimeout>;
 
   // Handle fade-in animation
   useEffect(() => {
@@ -42,15 +43,16 @@ const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }
     if (shouldAnimate && brand.hasPreviousDeal && isVisible) {
       const timer = setTimeout(() => {
         setShowAnimation(true);
-        
-        const resetTimer = setTimeout(() => {
+
+        resetTimer = setTimeout(() => {
           setShowAnimation(false);
         }, 800);
-
-        return () => clearTimeout(resetTimer);
       }, delay);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(resetTimer);
+      };
     }
   }, [shouldAnimate, delay, brand.hasPreviousDeal, isVisible]);
 
@@ -59,15 +61,16 @@ const BrandRow = ({ brand, shouldAnimate, delay, shouldFadeIn, fadeInDelay = 0 }
     if (isVisible && brand.hasPreviousDeal && shouldFadeIn) {
       const autoAnimateTimer = setTimeout(() => {
         setShowAnimation(true);
-        
-        const resetTimer = setTimeout(() => {
+
+        resetTimer = setTimeout(() => {
           setShowAnimation(false);
         }, 800);
-
-        return () => clearTimeout(resetTimer);
       }, fadeInDelay + 600); // Wait for fade-in to complete plus small delay
 
-      return () => clearTimeout(autoAnimateTimer);
+      return () => {
+        clearTimeout(autoAnimateTimer);
+        clearTimeout(resetTimer);
+      };
     }
   }, [isVisible, brand.hasPreviousDeal, shouldFadeIn, fadeInDelay]);
 
